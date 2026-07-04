@@ -2,8 +2,12 @@
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
-# Output
+# ReconForge output
+workspaces/
 output/
 logs/
 
@@ -14,8 +18,8 @@ logs/
 .vscode/
 .idea/
 
-# Database
+# Database / local data
 *.db
 
-# Backup Files
+# Backup files
 *.json.bak

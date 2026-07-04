@@ -1,0 +1,24 @@
+workspace:
+  base_dir: workspaces
+
+runner:
+  timeout_seconds: 300
+  dry_run: false
+
+tools:
+  subfinder:
+    enabled: true
+  assetfinder:
+    enabled: true
+  amass:
+    enabled: false
+  httpx:
+    enabled: true
+  whatweb:
+    enabled: true
+  katana:
+    enabled: true
+  gau:
+    enabled: true
+  waybackurls:
+    enabled: true
