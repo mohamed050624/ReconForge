@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Output
+output/
+logs/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Database
+*.db
+
+# Backup Files
+*.json.bak
