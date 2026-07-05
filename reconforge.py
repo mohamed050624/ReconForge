@@ -19,6 +19,7 @@ from modules.katana import run_katana
 from modules.subfinder import run_subfinder
 from modules.waybackurls import run_waybackurls
 from modules.whatweb import run_whatweb
+from report import generate_markdown_report
 
 
 ToolFunction = Callable[[str, WorkspacePaths, ToolRunner, object], object]
@@ -198,9 +199,13 @@ def main() -> int:
         logger.error("ReconForge completed with failed tools: %s", failed_tools)
         return 1
 
+    report_path = generate_markdown_report(target=target, workspace=workspace)
+    logger.info("Report generated: %s", report_path)
+
     logger.info("ReconForge Fast V1 run completed.")
     print("ReconForge Fast V1 run completed.")
     print(f"Workspace: {workspace.root}")
+    print(f"Report: {report_path}")
     return 0
 
 
