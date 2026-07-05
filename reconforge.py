@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Callable
 
+from ai_context import generate_ai_context
 from core.config import load_config
 from core.logger import setup_logger
 from core.targets import InvalidTargetError, normalize_target
@@ -200,12 +201,16 @@ def main() -> int:
         return 1
 
     report_path = generate_markdown_report(target=target, workspace=workspace)
+    ai_context_path = generate_ai_context(target=target, workspace=workspace)
+
     logger.info("Report generated: %s", report_path)
+    logger.info("AI context generated: %s", ai_context_path)
 
     logger.info("ReconForge Fast V1 run completed.")
     print("ReconForge Fast V1 run completed.")
     print(f"Workspace: {workspace.root}")
     print(f"Report: {report_path}")
+    print(f"AI Context: {ai_context_path}")
     return 0
 
 
