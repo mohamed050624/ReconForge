@@ -1,4 +1,4 @@
-"""Shared command runner for ReconForge tool integrations."""
+"""Shared command runner for external reconnaissance tools."""
 
 from __future__ import annotations
 
@@ -7,31 +7,32 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
-
-from core.logger import LOGGER_NAME
 
 
 @dataclass(frozen=True)
-class ToolResult:
-    """Result returned after running an external command."""
+class ToolRunResult:
+    """Result returned after running an external tool."""
 
-    command: tuple[str, ...]
+    tool_name: str
+    command: list[str]
     return_code: int
     stdout: str
     stderr: str
-    output_file: Path | None = None
-    skipped: bool = False
-    reason: str | None = None
-
-    @property
-    def succeeded(self) -> bool:
-        """Return True when the command completed successfully."""
-        return self.return_code == 0 and not self.skipped
+    output_file: Path | None
+    success: bool
+    dry_run: bool
 
 
 class ToolRunner:
-    """Run external recon tools through one controlled interface."""
+    """
+    Safe shared runner for all ReconForge tool wrappers.
+
+    Design rules:
+    - no shell=True
+    - one execution path for all external tools
+    - supports dry-run
+    - writes stdout to output files when requested
+    """
 
     def __init__(
         self,
@@ -41,104 +42,101 @@ class ToolRunner:
     ) -> None:
         self.timeout_seconds = timeout_seconds
         self.dry_run = dry_run
-        self.logger = logger or logging.getLogger(LOGGER_NAME)
+        self.logger = logger or logging.getLogger("reconforge")
 
     def run(
         self,
-        command: Sequence[str],
+        command: list[str],
         output_file: Path | None = None,
         cwd: Path | None = None,
-        env: Mapping[str, str] | None = None,
-    ) -> ToolResult:
-        """Run a command and optionally write stdout to a file.
-
-        Args:
-            command: Command as a sequence, never as a shell string.
-            output_file: Optional file where stdout is written.
-            cwd: Optional working directory.
-            env: Optional environment variables.
-
-        Returns:
-            ToolResult containing stdout, stderr, and status.
-        """
-        normalized = tuple(str(part) for part in command if str(part).strip())
-
-        if not normalized:
+    ) -> ToolRunResult:
+        """Run a command and optionally save stdout to a file."""
+        if not command:
             raise ValueError("Command cannot be empty.")
 
-        executable = normalized[0]
-        command_text = " ".join(normalized)
-
-        if shutil.which(executable) is None:
-            reason = f"Executable not found: {executable}"
-            self.logger.warning("Skipping command. %s", reason)
-            return ToolResult(
-                command=normalized,
-                return_code=127,
-                stdout="",
-                stderr=reason,
-                output_file=output_file,
-                skipped=True,
-                reason=reason,
-            )
+        tool_name = command[0]
 
         if self.dry_run:
-            self.logger.info("Dry run: %s", command_text)
-            return ToolResult(
-                command=normalized,
+            self.logger.info("Dry run: %s", " ".join(command))
+            return ToolRunResult(
+                tool_name=tool_name,
+                command=command,
                 return_code=0,
                 stdout="",
                 stderr="",
                 output_file=output_file,
-                skipped=True,
-                reason="dry_run",
+                success=True,
+                dry_run=True,
             )
 
-        self.logger.info("Running command: %s", command_text)
+        if shutil.which(tool_name) is None:
+            message = f"Executable not found: {tool_name}"
+            self.logger.error(message)
+            return ToolRunResult(
+                tool_name=tool_name,
+                command=command,
+                return_code=127,
+                stdout="",
+                stderr=message,
+                output_file=output_file,
+                success=False,
+                dry_run=False,
+            )
+
+        self.logger.info("Running: %s", " ".join(command))
 
         try:
             completed = subprocess.run(
-                normalized,
+                command,
                 cwd=cwd,
-                env=dict(env) if env is not None else None,
-                capture_output=True,
                 text=True,
+                capture_output=True,
                 timeout=self.timeout_seconds,
                 check=False,
             )
         except subprocess.TimeoutExpired as exc:
-            stderr = f"Command timed out after {self.timeout_seconds} seconds."
-            self.logger.error("%s Command: %s", stderr, command_text)
-            return ToolResult(
-                command=normalized,
+            message = (
+                f"Tool timed out after {self.timeout_seconds} seconds: {tool_name}"
+            )
+            self.logger.error(message)
+            return ToolRunResult(
+                tool_name=tool_name,
+                command=command,
                 return_code=124,
                 stdout=exc.stdout or "",
-                stderr=stderr,
+                stderr=message,
                 output_file=output_file,
-                skipped=False,
-                reason="timeout",
+                success=False,
+                dry_run=False,
             )
 
         stdout = completed.stdout or ""
         stderr = completed.stderr or ""
 
-        if output_file is not None and stdout:
+        if output_file is not None:
             output_file.parent.mkdir(parents=True, exist_ok=True)
             output_file.write_text(stdout, encoding="utf-8")
 
-        if completed.returncode == 0:
-            self.logger.info("Command completed successfully: %s", executable)
-        else:
-            self.logger.warning(
-                "Command failed with code %s: %s",
-                completed.returncode,
-                command_text,
-            )
+        success = completed.returncode == 0
 
-        return ToolResult(
-            command=normalized,
+        if success:
+            self.logger.info("%s completed successfully.", tool_name)
+        else:
+            self.logger.error(
+                "%s failed with exit code %s.",
+                tool_name,
+                completed.returncode,
+            )
+            if stderr:
+                self.logger.debug("stderr: %s", stderr.strip())
+
+        return ToolRunResult(
+            tool_name=tool_name,
+            command=command,
             return_code=completed.returncode,
             stdout=stdout,
             stderr=stderr,
             output_file=output_file,
+            success=success,
+            dry_run=False,
         )

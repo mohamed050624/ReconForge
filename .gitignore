@@ -1,25 +1,21 @@
 # Python
-.venv/
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# ReconForge output
+# Virtual environments
+.venv/
+venv/
+env/
+
+# ReconForge runtime outputs
 workspaces/
-output/
-logs/
 
-# Environment
-.env
-
-# IDE
+# OS / editor
+.DS_Store
 .vscode/
 .idea/
-
-# Database / local data
-*.db
-
-# Backup files
-*.json.bak

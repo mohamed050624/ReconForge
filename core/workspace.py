@@ -1,87 +1,53 @@
-"""Workspace management for ReconForge.
-
-A workspace is the per-target directory where ReconForge stores raw tool output,
-processed data, reports, and logs. Keeping this logic isolated prevents every
-module from inventing its own folder layout, because chaos already has enough
-market share.
-"""
+"""Workspace management for ReconForge."""
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
+
+from core.targets import workspace_safe_name
 
 
 @dataclass(frozen=True)
 class WorkspacePaths:
-    """Resolved paths for a single ReconForge target workspace."""
+    """All important paths for a single ReconForge target workspace."""
 
     target: str
     root: Path
-    logs: Path
-    raw: Path
-    processed: Path
-    reports: Path
-
-
-class WorkspaceError(RuntimeError):
-    """Raised when workspace creation fails."""
+    logs_dir: Path
+    raw_dir: Path
+    processed_dir: Path
+    reports_dir: Path
 
 
 def create_workspace(target: str, base_dir: Path | str = "workspaces") -> WorkspacePaths:
-    """Create and return the workspace structure for a target.
-
-    Args:
-        target: Authorized target domain or program identifier.
-        base_dir: Directory where all target workspaces are stored.
-
-    Returns:
-        WorkspacePaths with all important directories resolved.
-
-    Raises:
-        WorkspaceError: If target is empty or directories cannot be created.
     """
-    safe_target = sanitize_target_name(target)
-    root = Path(base_dir).expanduser().resolve() / safe_target
+    Create and return the workspace directory structure for a target.
 
-    paths = WorkspacePaths(
+    Structure:
+        workspaces/<target>/
+        ├── logs/
+        ├── raw/
+        ├── processed/
+        └── reports/
+    """
+    base_path = Path(base_dir).expanduser().resolve()
+    target_dir_name = workspace_safe_name(target)
+    root = base_path / target_dir_name
+
+    logs_dir = root / "logs"
+    raw_dir = root / "raw"
+    processed_dir = root / "processed"
+    reports_dir = root / "reports"
+
+    for directory in (root, logs_dir, raw_dir, processed_dir, reports_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    return WorkspacePaths(
         target=target,
         root=root,
-        logs=root / "logs",
-        raw=root / "raw",
-        processed=root / "processed",
-        reports=root / "reports",
+        logs_dir=logs_dir,
+        raw_dir=raw_dir,
+        processed_dir=processed_dir,
+        reports_dir=reports_dir,
     )
-
-    try:
-        for directory in (
-            paths.root,
-            paths.logs,
-            paths.raw,
-            paths.processed,
-            paths.reports,
-        ):
-            directory.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise WorkspaceError(f"Unable to create workspace at {root}") from exc
-
-    return paths
-
-
-def sanitize_target_name(target: str) -> str:
-    """Convert a target string into a safe directory name."""
-    cleaned = target.strip().lower()
-
-    if not cleaned:
-        raise WorkspaceError("Target cannot be empty.")
-
-    cleaned = re.sub(r"^https?://", "", cleaned)
-    cleaned = cleaned.strip("/")
-    cleaned = re.sub(r"[^a-z0-9._-]+", "_", cleaned)
-    cleaned = cleaned.strip("._-")
-
-    if not cleaned:
-        raise WorkspaceError("Target does not contain a valid workspace name.")
-
-    return cleaned

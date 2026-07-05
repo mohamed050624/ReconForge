@@ -1,1 +1,1 @@
-"""ReconForge tool modules package."""
+"""ReconForge external tool integrations."""

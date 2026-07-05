@@ -3,47 +3,39 @@
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 
 
-LOGGER_NAME = "reconforge"
-LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-
-def setup_logger(log_file: Path | None = None, verbose: bool = False) -> logging.Logger:
-    """Configure and return the ReconForge logger.
-
-    The function is idempotent: calling it multiple times replaces previous
-    handlers instead of duplicating log lines.
-
-    Args:
-        log_file: Optional file path to write logs to.
-        verbose: If True, console logging uses DEBUG level.
-
-    Returns:
-        Configured logger instance.
+def setup_logger(log_file: Path, verbose: bool = False) -> logging.Logger:
     """
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(logging.DEBUG)
+    Configure the main ReconForge logger.
+
+    Logs go to:
+    - terminal
+    - workspace log file
+    """
+    logger = logging.getLogger("reconforge")
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger.propagate = False
 
-    for handler in list(logger.handlers):
-        logger.removeHandler(handler)
-        handler.close()
+    logger.handlers.clear()
 
-    formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG if verbose else logging.INFO)
     console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
 
-    if log_file is not None:
-        log_file.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
     return logger
