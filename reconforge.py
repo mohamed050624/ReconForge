@@ -13,6 +13,7 @@ from core.targets import InvalidTargetError, normalize_target
 from core.tool_runner import ToolRunner
 from core.workspace import WorkspacePaths, create_workspace
 from modules.assetfinder import run_assetfinder
+from modules.httpx import run_httpx
 from modules.subfinder import run_subfinder
 
 
@@ -22,6 +23,7 @@ ToolFunction = Callable[[str, WorkspacePaths, ToolRunner, object], object]
 AVAILABLE_TOOLS: dict[str, ToolFunction] = {
     "subfinder": run_subfinder,
     "assetfinder": run_assetfinder,
+    "httpx": run_httpx,
 }
 
 
@@ -31,7 +33,7 @@ def parse_tool_selection(raw_tools: str | None) -> list[str]:
 
     Examples:
         --tools subfinder
-        --tools subfinder,assetfinder
+        --tools subfinder,assetfinder,httpx
         --tools all
     """
     if raw_tools is None:
@@ -86,7 +88,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tools",
         default=None,
-        help="Tools to run. Example: subfinder,assetfinder or all",
+        help="Tools to run. Example: subfinder,assetfinder,httpx or all",
     )
 
     parser.add_argument(
@@ -150,7 +152,7 @@ def main() -> int:
         print("ReconForge Fast V1 foundation initialized successfully.")
         print(f"Target: {target}")
         print(f"Workspace: {workspace.root}")
-        print("Next step: run a tool, e.g. --tools subfinder")
+        print("Next step: run tools, e.g. --tools subfinder,assetfinder,httpx")
         return 0
 
     unknown_tools = [
