@@ -12,6 +12,7 @@ from core.workspace import WorkspacePaths
 INPUT_FILENAMES = (
     "subdomains_subfinder.txt",
     "subdomains_assetfinder.txt",
+    "subdomains_amass.txt",
 )
 
 COMBINED_INPUT_FILENAME = "subdomains_combined.txt"
@@ -25,6 +26,7 @@ def collect_subdomains(workspace: WorkspacePaths) -> list[str]:
     Reads from:
     - raw/subdomains_subfinder.txt
     - raw/subdomains_assetfinder.txt
+    - raw/subdomains_amass.txt
     """
     subdomains: set[str] = set()
 
@@ -88,7 +90,7 @@ def run_httpx(
     if not subdomains:
         message = (
             "No subdomains found for HTTPX. "
-            "Run subfinder and/or assetfinder first."
+            "Run subfinder, assetfinder, and/or amass first."
         )
         logger.error(message)
         return ToolRunResult(

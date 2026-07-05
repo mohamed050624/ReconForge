@@ -18,22 +18,33 @@ class WorkspacePaths:
     raw_dir: Path
     processed_dir: Path
     reports_dir: Path
+    program: str | None = None
 
 
-def create_workspace(target: str, base_dir: Path | str = "workspaces") -> WorkspacePaths:
+def create_workspace(
+    target: str,
+    base_dir: Path | str = "workspaces",
+    program: str | None = None,
+) -> WorkspacePaths:
     """
     Create and return the workspace directory structure for a target.
 
-    Structure:
+    Without program:
         workspaces/<target>/
-        ├── logs/
-        ├── raw/
-        ├── processed/
-        └── reports/
+
+    With program:
+        workspaces/<program>/<target>/
     """
     base_path = Path(base_dir).expanduser().resolve()
     target_dir_name = workspace_safe_name(target)
-    root = base_path / target_dir_name
+
+    if program:
+        program_dir_name = workspace_safe_name(program)
+        root = base_path / program_dir_name / target_dir_name
+        normalized_program = program_dir_name
+    else:
+        root = base_path / target_dir_name
+        normalized_program = None
 
     logs_dir = root / "logs"
     raw_dir = root / "raw"
@@ -50,4 +61,5 @@ def create_workspace(target: str, base_dir: Path | str = "workspaces") -> Worksp
         raw_dir=raw_dir,
         processed_dir=processed_dir,
         reports_dir=reports_dir,
+        program=normalized_program,
     )

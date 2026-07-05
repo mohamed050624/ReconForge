@@ -32,6 +32,7 @@ def _existing_source_files(workspace: WorkspacePaths) -> dict[str, str]:
     candidates = {
         "subfinder_subdomains": workspace.raw_dir / "subdomains_subfinder.txt",
         "assetfinder_subdomains": workspace.raw_dir / "subdomains_assetfinder.txt",
+        "amass_subdomains": workspace.raw_dir / "subdomains_amass.txt",
         "combined_subdomains": workspace.processed_dir / "subdomains_combined.txt",
         "live_hosts": workspace.raw_dir / "live_hosts_httpx.txt",
         "technologies": workspace.raw_dir / "technologies_whatweb.txt",
@@ -67,6 +68,7 @@ def build_ai_context(target: str, workspace: WorkspacePaths) -> dict[str, Any]:
     return {
         "schema_version": "reconforge.v1.ai_context",
         "generated_at": generated_at,
+        "program": workspace.program or "default",
         "target": target,
         "workspace": str(workspace.root),
         "purpose": (

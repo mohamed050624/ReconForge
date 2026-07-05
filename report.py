@@ -13,6 +13,7 @@ REPORT_FILENAME = "final_report.md"
 RAW_FILES = {
     "subfinder_subdomains": "subdomains_subfinder.txt",
     "assetfinder_subdomains": "subdomains_assetfinder.txt",
+    "amass_subdomains": "subdomains_amass.txt",
     "live_hosts": "live_hosts_httpx.txt",
     "technologies": "technologies_whatweb.txt",
     "katana_urls": "urls_katana.txt",
@@ -79,11 +80,13 @@ def load_report_data(workspace: WorkspacePaths) -> dict[str, list[str]]:
     for key, filename in PROCESSED_FILES.items():
         data[key] = _read_lines(workspace.processed_dir / filename)
 
-    all_subdomains = (
-        data.get("combined_subdomains")
-        or data.get("subfinder_subdomains", [])
+    fallback_subdomains = (
+        data.get("subfinder_subdomains", [])
         + data.get("assetfinder_subdomains", [])
+        + data.get("amass_subdomains", [])
     )
+
+    all_subdomains = data.get("combined_subdomains") or fallback_subdomains
 
     all_urls = (
         data.get("katana_urls", [])
@@ -102,12 +105,14 @@ def build_markdown_report(target: str, workspace: WorkspacePaths) -> str:
     data = load_report_data(workspace)
 
     generated_at = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    program = workspace.program or "default"
 
     sections = [
         "# ReconForge V1 Report",
         "",
         "## Scan Metadata",
         "",
+        f"- **Program:** `{program}`",
         f"- **Target:** `{target}`",
         f"- **Generated at:** `{generated_at}`",
         f"- **Workspace:** `{workspace.root}`",

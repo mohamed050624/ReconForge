@@ -13,6 +13,7 @@ from core.logger import setup_logger
 from core.targets import InvalidTargetError, normalize_target
 from core.tool_runner import ToolRunner
 from core.workspace import WorkspacePaths, create_workspace
+from modules.amass import run_amass
 from modules.assetfinder import run_assetfinder
 from modules.gau import run_gau
 from modules.httpx import run_httpx
@@ -29,6 +30,7 @@ ToolFunction = Callable[[str, WorkspacePaths, ToolRunner, object], object]
 AVAILABLE_TOOLS: dict[str, ToolFunction] = {
     "subfinder": run_subfinder,
     "assetfinder": run_assetfinder,
+    "amass": run_amass,
     "httpx": run_httpx,
     "whatweb": run_whatweb,
     "katana": run_katana,
@@ -43,7 +45,7 @@ def parse_tool_selection(raw_tools: str | None) -> list[str]:
 
     Examples:
         --tools subfinder
-        --tools subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls
+        --tools subfinder,assetfinder,amass,httpx
         --tools all
     """
     if raw_tools is None:
@@ -77,6 +79,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--program",
+        default=None,
+        help=(
+            "Optional bug bounty program name/handle. "
+            "Creates workspaces/<program>/<target>/."
+        ),
+    )
+
+    parser.add_argument(
         "--config",
         default="config.yaml",
         help="Path to config YAML file. Default: config.yaml",
@@ -100,7 +111,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Tools to run. Example: "
-            "subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls or all"
+            "subfinder,assetfinder,amass,httpx,whatweb,katana,gau,waybackurls "
+            "or all"
         ),
     )
 
@@ -137,7 +149,12 @@ def main() -> int:
         or config.get("workspace", {}).get("base_dir", "workspaces")
     )
 
-    workspace = create_workspace(target=target, base_dir=workspace_base_dir)
+    workspace = create_workspace(
+        target=target,
+        base_dir=workspace_base_dir,
+        program=args.program,
+    )
+
     log_file = workspace.logs_dir / "reconforge.log"
     logger = setup_logger(log_file=log_file, verbose=args.verbose)
 
@@ -154,6 +171,7 @@ def main() -> int:
     selected_tools = parse_tool_selection(args.tools)
 
     logger.info("ReconForge Fast V1 started.")
+    logger.info("Program: %s", workspace.program or "default")
     logger.info("Target: %s", target)
     logger.info("Workspace: %s", workspace.root)
     logger.info("Timeout: %s seconds", timeout_seconds)
@@ -163,11 +181,12 @@ def main() -> int:
 
     if not selected_tools:
         print("ReconForge Fast V1 foundation initialized successfully.")
+        print(f"Program: {workspace.program or 'default'}")
         print(f"Target: {target}")
         print(f"Workspace: {workspace.root}")
         print(
             "Next step: run tools, e.g. "
-            "--tools subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls"
+            "--tools subfinder,assetfinder,amass,httpx,whatweb,katana,gau,waybackurls"
         )
         return 0
 
@@ -208,6 +227,7 @@ def main() -> int:
 
     logger.info("ReconForge Fast V1 run completed.")
     print("ReconForge Fast V1 run completed.")
+    print(f"Program: {workspace.program or 'default'}")
     print(f"Workspace: {workspace.root}")
     print(f"Report: {report_path}")
     print(f"AI Context: {ai_context_path}")
