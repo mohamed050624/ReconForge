@@ -14,6 +14,7 @@ from core.tool_runner import ToolRunner
 from core.workspace import WorkspacePaths, create_workspace
 from modules.assetfinder import run_assetfinder
 from modules.httpx import run_httpx
+from modules.katana import run_katana
 from modules.subfinder import run_subfinder
 from modules.whatweb import run_whatweb
 
@@ -26,6 +27,7 @@ AVAILABLE_TOOLS: dict[str, ToolFunction] = {
     "assetfinder": run_assetfinder,
     "httpx": run_httpx,
     "whatweb": run_whatweb,
+    "katana": run_katana,
 }
 
 
@@ -35,7 +37,7 @@ def parse_tool_selection(raw_tools: str | None) -> list[str]:
 
     Examples:
         --tools subfinder
-        --tools subfinder,assetfinder,httpx,whatweb
+        --tools subfinder,assetfinder,httpx,whatweb,katana
         --tools all
     """
     if raw_tools is None:
@@ -91,7 +93,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--tools",
         default=None,
         help=(
-            "Tools to run. Example: subfinder,assetfinder,httpx,whatweb or all"
+            "Tools to run. Example: "
+            "subfinder,assetfinder,httpx,whatweb,katana or all"
         ),
     )
 
@@ -158,7 +161,7 @@ def main() -> int:
         print(f"Workspace: {workspace.root}")
         print(
             "Next step: run tools, e.g. "
-            "--tools subfinder,assetfinder,httpx,whatweb"
+            "--tools subfinder,assetfinder,httpx,whatweb,katana"
         )
         return 0
 
