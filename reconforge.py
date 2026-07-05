@@ -12,6 +12,7 @@ from core.logger import setup_logger
 from core.targets import InvalidTargetError, normalize_target
 from core.tool_runner import ToolRunner
 from core.workspace import WorkspacePaths, create_workspace
+from modules.assetfinder import run_assetfinder
 from modules.subfinder import run_subfinder
 
 
@@ -20,6 +21,7 @@ ToolFunction = Callable[[str, WorkspacePaths, ToolRunner, object], object]
 
 AVAILABLE_TOOLS: dict[str, ToolFunction] = {
     "subfinder": run_subfinder,
+    "assetfinder": run_assetfinder,
 }
 
 
@@ -29,7 +31,7 @@ def parse_tool_selection(raw_tools: str | None) -> list[str]:
 
     Examples:
         --tools subfinder
-        --tools subfinder,httpx
+        --tools subfinder,assetfinder
         --tools all
     """
     if raw_tools is None:
@@ -84,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tools",
         default=None,
-        help="Tools to run. Example: subfinder or subfinder,httpx or all",
+        help="Tools to run. Example: subfinder,assetfinder or all",
     )
 
     parser.add_argument(
