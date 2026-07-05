@@ -17,6 +17,7 @@ from modules.gau import run_gau
 from modules.httpx import run_httpx
 from modules.katana import run_katana
 from modules.subfinder import run_subfinder
+from modules.waybackurls import run_waybackurls
 from modules.whatweb import run_whatweb
 
 
@@ -30,6 +31,7 @@ AVAILABLE_TOOLS: dict[str, ToolFunction] = {
     "whatweb": run_whatweb,
     "katana": run_katana,
     "gau": run_gau,
+    "waybackurls": run_waybackurls,
 }
 
 
@@ -39,7 +41,7 @@ def parse_tool_selection(raw_tools: str | None) -> list[str]:
 
     Examples:
         --tools subfinder
-        --tools subfinder,assetfinder,httpx,whatweb,katana,gau
+        --tools subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls
         --tools all
     """
     if raw_tools is None:
@@ -96,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Tools to run. Example: "
-            "subfinder,assetfinder,httpx,whatweb,katana,gau or all"
+            "subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls or all"
         ),
     )
 
@@ -163,7 +165,7 @@ def main() -> int:
         print(f"Workspace: {workspace.root}")
         print(
             "Next step: run tools, e.g. "
-            "--tools subfinder,assetfinder,httpx,whatweb,katana,gau"
+            "--tools subfinder,assetfinder,httpx,whatweb,katana,gau,waybackurls"
         )
         return 0
 
