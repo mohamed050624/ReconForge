@@ -1,237 +1,25 @@
-"""ReconForge Fast V1 CLI entrypoint."""
+"""ReconForge V1 program-level CLI entrypoint.
+
+Primary usage:
+    python3 reconforge.py run --program hackerone-example --scope-csv scope.csv
+
+Compatibility usage:
+    python3 reconforge.py --program hackerone-example --scope-csv scope.csv
+"""
 
 from __future__ import annotations
 
-import argparse
 import sys
-from pathlib import Path
-from typing import Callable
 
-from ai_context import generate_ai_context
-from core.config import load_config
-from core.logger import setup_logger
-from core.targets import InvalidTargetError, normalize_target
-from core.tool_runner import ToolRunner
-from core.workspace import WorkspacePaths, create_workspace
-from modules.amass import run_amass
-from modules.assetfinder import run_assetfinder
-from modules.gau import run_gau
-from modules.httpx import run_httpx
-from modules.katana import run_katana
-from modules.subfinder import run_subfinder
-from modules.waybackurls import run_waybackurls
-from modules.whatweb import run_whatweb
-from report import generate_markdown_report
-
-
-ToolFunction = Callable[[str, WorkspacePaths, ToolRunner, object], object]
-
-
-AVAILABLE_TOOLS: dict[str, ToolFunction] = {
-    "subfinder": run_subfinder,
-    "assetfinder": run_assetfinder,
-    "amass": run_amass,
-    "httpx": run_httpx,
-    "whatweb": run_whatweb,
-    "katana": run_katana,
-    "gau": run_gau,
-    "waybackurls": run_waybackurls,
-}
-
-
-def parse_tool_selection(raw_tools: str | None) -> list[str]:
-    """
-    Parse tool selection from CLI.
-
-    Examples:
-        --tools subfinder
-        --tools subfinder,assetfinder,amass,httpx
-        --tools all
-    """
-    if raw_tools is None:
-        return []
-
-    values = [
-        item.strip().lower()
-        for item in raw_tools.replace(",", " ").split()
-        if item.strip()
-    ]
-
-    if "all" in values:
-        return list(AVAILABLE_TOOLS.keys())
-
-    return values
-
-
-def build_parser() -> argparse.ArgumentParser:
-    """Build CLI argument parser."""
-    parser = argparse.ArgumentParser(
-        prog="ReconForge",
-        description=(
-            "ReconForge V1: authorized reconnaissance orchestration framework."
-        ),
-    )
-
-    parser.add_argument(
-        "--target",
-        required=True,
-        help="Authorized target domain or host, e.g. example.com",
-    )
-
-    parser.add_argument(
-        "--program",
-        default=None,
-        help=(
-            "Optional bug bounty program name/handle. "
-            "Creates workspaces/<program>/<target>/."
-        ),
-    )
-
-    parser.add_argument(
-        "--config",
-        default="config.yaml",
-        help="Path to config YAML file. Default: config.yaml",
-    )
-
-    parser.add_argument(
-        "--workspace-dir",
-        default=None,
-        help="Override workspace base directory.",
-    )
-
-    parser.add_argument(
-        "--timeout",
-        type=int,
-        default=None,
-        help="Override external tool timeout in seconds.",
-    )
-
-    parser.add_argument(
-        "--tools",
-        default=None,
-        help=(
-            "Tools to run. Example: "
-            "subfinder,assetfinder,amass,httpx,whatweb,katana,gau,waybackurls "
-            "or all"
-        ),
-    )
-
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print commands without executing external tools.",
-    )
-
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable debug logging.",
-    )
-
-    return parser
+from reconforge_one import main as run_reconforge_one
 
 
 def main() -> int:
-    """Run ReconForge CLI."""
-    parser = build_parser()
-    args = parser.parse_args()
+    """Run the ReconForge V1 CLI."""
+    if len(sys.argv) > 1 and sys.argv[1] == "run":
+        sys.argv.pop(1)
 
-    try:
-        target = normalize_target(args.target)
-    except InvalidTargetError as exc:
-        print(f"Invalid target: {exc}", file=sys.stderr)
-        return 2
-
-    config = load_config(Path(args.config))
-
-    workspace_base_dir = (
-        args.workspace_dir
-        or config.get("workspace", {}).get("base_dir", "workspaces")
-    )
-
-    workspace = create_workspace(
-        target=target,
-        base_dir=workspace_base_dir,
-        program=args.program,
-    )
-
-    log_file = workspace.logs_dir / "reconforge.log"
-    logger = setup_logger(log_file=log_file, verbose=args.verbose)
-
-    runner_config = config.get("runner", {})
-    timeout_seconds = args.timeout or int(runner_config.get("timeout_seconds", 300))
-    dry_run = bool(args.dry_run or runner_config.get("dry_run", False))
-
-    runner = ToolRunner(
-        timeout_seconds=timeout_seconds,
-        dry_run=dry_run,
-        logger=logger,
-    )
-
-    selected_tools = parse_tool_selection(args.tools)
-
-    logger.info("ReconForge Fast V1 started.")
-    logger.info("Program: %s", workspace.program or "default")
-    logger.info("Target: %s", target)
-    logger.info("Workspace: %s", workspace.root)
-    logger.info("Timeout: %s seconds", timeout_seconds)
-    logger.info("Dry run: %s", dry_run)
-    logger.debug("Loaded config: %s", config)
-    logger.debug("Selected tools: %s", selected_tools)
-
-    if not selected_tools:
-        print("ReconForge Fast V1 foundation initialized successfully.")
-        print(f"Program: {workspace.program or 'default'}")
-        print(f"Target: {target}")
-        print(f"Workspace: {workspace.root}")
-        print(
-            "Next step: run tools, e.g. "
-            "--tools subfinder,assetfinder,amass,httpx,whatweb,katana,gau,waybackurls"
-        )
-        return 0
-
-    unknown_tools = [
-        tool_name for tool_name in selected_tools if tool_name not in AVAILABLE_TOOLS
-    ]
-
-    if unknown_tools:
-        logger.error("Unknown tool(s): %s", ", ".join(unknown_tools))
-        logger.error("Available tools: %s", ", ".join(AVAILABLE_TOOLS))
-        return 2
-
-    failed_tools: list[str] = []
-
-    for tool_name in selected_tools:
-        tool_config = config.get("tools", {}).get(tool_name, {})
-        enabled = bool(tool_config.get("enabled", True))
-
-        if not enabled:
-            logger.info("Skipping disabled tool: %s", tool_name)
-            continue
-
-        tool_function = AVAILABLE_TOOLS[tool_name]
-        result = tool_function(target, workspace, runner, logger)
-
-        if hasattr(result, "success") and not result.success:
-            failed_tools.append(tool_name)
-
-    if failed_tools:
-        logger.error("ReconForge completed with failed tools: %s", failed_tools)
-        return 1
-
-    report_path = generate_markdown_report(target=target, workspace=workspace)
-    ai_context_path = generate_ai_context(target=target, workspace=workspace)
-
-    logger.info("Report generated: %s", report_path)
-    logger.info("AI context generated: %s", ai_context_path)
-
-    logger.info("ReconForge Fast V1 run completed.")
-    print("ReconForge Fast V1 run completed.")
-    print(f"Program: {workspace.program or 'default'}")
-    print(f"Workspace: {workspace.root}")
-    print(f"Report: {report_path}")
-    print(f"AI Context: {ai_context_path}")
-    return 0
+    return run_reconforge_one()
 
 
 if __name__ == "__main__":

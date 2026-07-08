@@ -26,3 +26,5 @@ venv/
 # Virtual environments
 .vscode/
 workspaces/
+
+RECONFORGE_SOURCE_AUDIT.txt
