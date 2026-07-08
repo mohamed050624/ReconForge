@@ -26,201 +26,29 @@ import subprocess
 import sys
 import tarfile
 from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Iterable
 from urllib.parse import parse_qsl, urlparse
 
-
-WEB_ASSET_TYPES = {"URL", "WILDCARD"}
-MOBILE_ASSET_TYPES = {"GOOGLE_PLAY_APP_ID", "APPLE_STORE_APP_ID"}
-
-PROFILE_TOOLS: dict[str, list[str]] = {
-    # Fast baseline: subdomains + live hosts.
-    "light": [
-        "subfinder",
-        "assetfinder",
-        "httpx",
-    ],
-
-    # Practical default: stable tools only.
-    # Amass, gau, and waybackurls are intentionally excluded because they often
-    # fail, hang, or become too slow on large programs.
-    "standard": [
-        "subfinder",
-        "assetfinder",
-        "httpx",
-        "whatweb",
-        "katana",
-    ],
-
-    # Slow archive-heavy mode.
-    "deep": [
-        "subfinder",
-        "assetfinder",
-        "amass",
-        "httpx",
-        "whatweb",
-        "katana",
-        "gau",
-        "waybackurls",
-    ],
-
-    "report-only": [],
-}
-
-INTERESTING_PATH_KEYWORDS = (
-    "admin",
-    "api",
-    "auth",
-    "backup",
-    "config",
-    "dashboard",
-    "debug",
-    "dev",
-    "graphql",
-    "internal",
-    "login",
-    "logout",
-    "oauth",
-    "panel",
-    "private",
-    "profile",
-    "reset",
-    "session",
-    "settings",
-    "signin",
-    "signup",
-    "stage",
-    "staging",
-    "swagger",
-    "token",
-    "upload",
-    "user",
-    "v1",
-    "v2",
-    "v3",
+from reconforge_v1.constants import (
+    API_HOST_KEYWORDS,
+    API_PATH_KEYWORDS,
+    AUTH_KEYWORDS,
+    DOMAIN_RE,
+    GRAPHQL_KEYWORDS,
+    INTERESTING_PATH_KEYWORDS,
+    JS_EXTENSIONS,
+    MOBILE_ASSET_TYPES,
+    PROFILE_TOOLS,
+    STATIC_EXTENSIONS,
+    SWAGGER_OPENAPI_KEYWORDS,
+    UPLOAD_KEYWORDS,
+    URL_RE,
+    WEB_ASSET_TYPES,
 )
-
-API_PATH_KEYWORDS = (
-    "/api/",
-    "/apis/",
-    "/v1/",
-    "/v2/",
-    "/v3/",
-    "/v4/",
-    "/graphql",
-    "/rest/",
-    "/rpc/",
-    "/jsonrpc",
-    "/gateway/",
-)
-
-API_HOST_KEYWORDS = (
-    "api.",
-    "apis.",
-    "graphql.",
-    "gateway.",
-    "developer.",
-    "developers.",
-)
-
-GRAPHQL_KEYWORDS = (
-    "graphql",
-    "gql",
-)
-
-SWAGGER_OPENAPI_KEYWORDS = (
-    "swagger",
-    "openapi",
-    "api-docs",
-    "apidocs",
-    "redoc",
-)
-
-AUTH_KEYWORDS = (
-    "auth",
-    "login",
-    "signin",
-    "sso",
-    "oauth",
-    "token",
-    "session",
-    "jwt",
-    "password",
-    "reset",
-)
-
-UPLOAD_KEYWORDS = (
-    "upload",
-    "file",
-    "media",
-    "avatar",
-    "image",
-    "attachment",
-)
-
-JS_EXTENSIONS = (
-    ".js",
-    ".mjs",
-)
-
-STATIC_EXTENSIONS = (
-    ".css",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".svg",
-    ".ico",
-    ".woff",
-    ".woff2",
-    ".ttf",
-    ".eot",
-    ".mp4",
-    ".mp3",
-    ".webp",
-    ".avif",
-)
-
-URL_RE = re.compile(r"https?://[^\s\"'<>\\)\\]]+", re.IGNORECASE)
-DOMAIN_RE = re.compile(r"^(?:[a-z0-9-]+\.)+[a-z]{2,}$", re.IGNORECASE)
-
-
-@dataclass(frozen=True)
-class RunPaths:
-    """Important folders for one program-level run."""
-
-    program: str
-    root: Path
-    scope_dir: Path
-    raw_dir: Path
-    clean_dir: Path
-    reports_dir: Path
-    logs_dir: Path
-
-
-@dataclass
-class ToolStatus:
-    """Tool execution status for reporting."""
-
-    tool: str
-    command: list[str]
-    return_code: int
-    success: bool
-    output_file: str
-    stderr_sample: str
-    skipped_reason: str | None = None
-
-
-@dataclass
-class ScopeData:
-    """Parsed scope data."""
-
-    roots: list[str]
-    mobile_assets: list[str]
-    excluded_assets: list[str]
+from reconforge_v1.models import RunPaths, ScopeData, ToolStatus
 
 
 def utc_now() -> str:
