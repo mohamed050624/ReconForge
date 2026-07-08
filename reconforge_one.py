@@ -48,7 +48,9 @@ from reconforge_v1.constants import (
     URL_RE,
     WEB_ASSET_TYPES,
 )
+from reconforge_v1.logging_config import setup_logger
 from reconforge_v1.models import RunPaths, ScopeData, ToolStatus
+from reconforge_v1.paths import build_paths
 from reconforge_v1.utils import (
     append_text,
     clean_domain,
@@ -59,60 +61,6 @@ from reconforge_v1.utils import (
     unique_sorted,
     write_lines,
 )
-
-
-def build_paths(program: str, out_dir: Path) -> RunPaths:
-    """Create and return program-level folder structure."""
-    program_name = safe_name(program)
-    root = out_dir / program_name
-
-    paths = RunPaths(
-        program=program_name,
-        root=root,
-        scope_dir=root / "00_scope",
-        raw_dir=root / "01_raw",
-        clean_dir=root / "02_clean",
-        reports_dir=root / "03_reports",
-        logs_dir=root / "04_logs",
-    )
-
-    for directory in (
-        paths.root,
-        paths.scope_dir,
-        paths.raw_dir,
-        paths.clean_dir,
-        paths.reports_dir,
-        paths.logs_dir,
-    ):
-        directory.mkdir(parents=True, exist_ok=True)
-
-    return paths
-
-
-def setup_logger(log_file: Path, verbose: bool) -> logging.Logger:
-    """Configure logger."""
-    logger = logging.getLogger("reconforge_one")
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-    logger.handlers.clear()
-    logger.propagate = False
-
-    formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(formatter)
-    stream_handler.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(logging.DEBUG)
-
-    logger.addHandler(stream_handler)
-    logger.addHandler(file_handler)
-
-    return logger
 
 
 def create_policy_template(paths: RunPaths) -> None:
