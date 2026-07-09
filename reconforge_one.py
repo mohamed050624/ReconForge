@@ -54,11 +54,7 @@ from reconforge_v1.models import RunPaths, ScopeData, ToolStatus
 from reconforge_v1.paths import build_paths
 from reconforge_v1.package import write_ai_package
 from reconforge_v1.processing import build_clean_outputs, build_url_clean_outputs
-from reconforge_v1.reports import (
-    build_ai_handoff,
-    build_ai_prompt,
-    build_program_report,
-)
+from reconforge_v1.reports import write_reports
 from reconforge_v1.scope import (
     apply_policy_file,
     create_policy_template,
@@ -82,31 +78,6 @@ from reconforge_v1.utils import (
     unique_sorted,
     write_lines,
 )
-
-
-def write_reports(paths: RunPaths, context: dict) -> None:
-    """Write program report, AI context, AI handoff, and AI prompt."""
-    program_report = build_program_report(context)
-    policy_notes = read_policy(paths)
-    ai_prompt = build_ai_prompt(paths.program)
-    ai_handoff = build_ai_handoff(context, program_report, policy_notes)
-
-    (paths.reports_dir / "program_report.md").write_text(
-        program_report + "\n",
-        encoding="utf-8",
-    )
-    (paths.reports_dir / "program_ai_context.json").write_text(
-        json.dumps(context, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    (paths.reports_dir / "ai_prompt.md").write_text(
-        ai_prompt + "\n",
-        encoding="utf-8",
-    )
-    (paths.reports_dir / "ai_handoff.md").write_text(
-        ai_handoff + "\n",
-        encoding="utf-8",
-    )
 
 
 def write_tool_statuses(paths: RunPaths, statuses: list[ToolStatus]) -> None:

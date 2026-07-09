@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import json
+
+from reconforge_v1.context import read_policy
+from reconforge_v1.models import RunPaths
+
 
 def md_list(values: list[str], limit: int = 30) -> str:
     """Render values as Markdown bullet list."""
@@ -209,4 +214,29 @@ def build_ai_handoff(context: dict, program_report: str, policy_notes: str) -> s
                 "Large full lists are stored in `02_clean/`."
             ),
         ]
+    )
+
+
+def write_reports(paths: RunPaths, context: dict) -> None:
+    """Write program report, AI context, AI handoff, and AI prompt."""
+    program_report = build_program_report(context)
+    policy_notes = read_policy(paths)
+    ai_prompt = build_ai_prompt(paths.program)
+    ai_handoff = build_ai_handoff(context, program_report, policy_notes)
+
+    (paths.reports_dir / "program_report.md").write_text(
+        program_report + "\n",
+        encoding="utf-8",
+    )
+    (paths.reports_dir / "program_ai_context.json").write_text(
+        json.dumps(context, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    (paths.reports_dir / "ai_prompt.md").write_text(
+        ai_prompt + "\n",
+        encoding="utf-8",
+    )
+    (paths.reports_dir / "ai_handoff.md").write_text(
+        ai_handoff + "\n",
+        encoding="utf-8",
     )
