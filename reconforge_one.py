@@ -16,69 +16,24 @@ It collects, cleans, summarizes, and prepares AI-ready context.
 from __future__ import annotations
 
 import argparse
-import csv
-import json
-import logging
-import re
-import shutil
-import socket
-import subprocess
-import sys
-import tarfile
-from collections import Counter
-from dataclasses import asdict
-from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
-from urllib.parse import parse_qsl, urlparse
 
-from reconforge_v1.context import build_context, read_policy
-from reconforge_v1.constants import (
-    API_HOST_KEYWORDS,
-    API_PATH_KEYWORDS,
-    AUTH_KEYWORDS,
-    DOMAIN_RE,
-    GRAPHQL_KEYWORDS,
-    INTERESTING_PATH_KEYWORDS,
-    JS_EXTENSIONS,
-    MOBILE_ASSET_TYPES,
-    PROFILE_TOOLS,
-    STATIC_EXTENSIONS,
-    SWAGGER_OPENAPI_KEYWORDS,
-    UPLOAD_KEYWORDS,
-    URL_RE,
-    WEB_ASSET_TYPES,
-)
+from reconforge_v1.context import build_context
+from reconforge_v1.constants import PROFILE_TOOLS
 from reconforge_v1.logging_config import setup_logger
-from reconforge_v1.models import RunPaths, ScopeData, ToolStatus
-from reconforge_v1.paths import build_paths
+from reconforge_v1.models import ToolStatus
 from reconforge_v1.package import write_ai_package
+from reconforge_v1.paths import build_paths
 from reconforge_v1.processing import build_clean_outputs, build_url_clean_outputs
 from reconforge_v1.reports import write_reports
-from reconforge_v1.status import write_tool_statuses
 from reconforge_v1.scope import (
     apply_policy_file,
     create_policy_template,
     parse_roots,
     write_scope_files,
 )
-from reconforge_v1.tools import (
-    extract_httpx_urls,
-    run_dnsx_or_fallback,
-    run_httpx,
-    run_subdomain_tools,
-    run_url_tools,
-)
-from reconforge_v1.utils import (
-    append_text,
-    clean_domain,
-    normalize_url,
-    read_lines,
-    safe_name,
-    utc_now,
-    unique_sorted,
-    write_lines,
-)
+from reconforge_v1.status import write_tool_statuses
+from reconforge_v1.tools import run_httpx, run_subdomain_tools, run_url_tools
 
 
 def parse_args() -> argparse.Namespace:
