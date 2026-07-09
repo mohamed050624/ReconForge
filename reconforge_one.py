@@ -55,6 +55,7 @@ from reconforge_v1.paths import build_paths
 from reconforge_v1.package import write_ai_package
 from reconforge_v1.processing import build_clean_outputs, build_url_clean_outputs
 from reconforge_v1.reports import write_reports
+from reconforge_v1.status import write_tool_statuses
 from reconforge_v1.scope import (
     apply_policy_file,
     create_policy_template,
@@ -78,14 +79,6 @@ from reconforge_v1.utils import (
     unique_sorted,
     write_lines,
 )
-
-
-def write_tool_statuses(paths: RunPaths, statuses: list[ToolStatus]) -> None:
-    """Write tool statuses to JSON."""
-    (paths.raw_dir / "tool_status.json").write_text(
-        json.dumps([asdict(status) for status in statuses], indent=2) + "\n",
-        encoding="utf-8",
-    )
 
 
 def parse_args() -> argparse.Namespace:
