@@ -1,21 +1,30 @@
-# Python
+
+*.bak
+*.bak_*
+*.before_*
+.DS_Store
+env/
+.idea/
+# Local audit / temporary files
+.mypy_cache/
+# OS / editor
 __pycache__/
 *.py[cod]
-*.pyo
 *.pyd
+*.pyo
 .pytest_cache/
-.mypy_cache/
+# Python
+RECONFORGE_AUDIT.txt
+reconforge_one.py.bak*
+reconforge_one.py.before_*
+# ReconForge One runtime outputs
+# ReconForge runtime outputs
+recon_runs/
 .ruff_cache/
-
-# Virtual environments
 .venv/
 venv/
-env/
-
-# ReconForge runtime outputs
+# Virtual environments
+.vscode/
 workspaces/
 
-# OS / editor
-.DS_Store
-.vscode/
-.idea/
+RECONFORGE_SOURCE_AUDIT.txt
