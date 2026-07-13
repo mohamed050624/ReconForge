@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
 from collections import Counter
 from dataclasses import asdict
 

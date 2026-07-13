@@ -120,7 +120,7 @@ def run_subdomain_tools(
     tool_commands = {
         "subfinder": lambda root: ["subfinder", "-d", root, "-silent"],
         "assetfinder": lambda root: ["assetfinder", "--subs-only", root],
-        "amass": lambda root: ["amass", "enum", "-passive", "-d", root],
+        "amass": lambda root: ["/usr/lib/amass/amass", "enum", "-passive", "-d", root],
     }
 
     for tool in ("subfinder", "assetfinder", "amass"):
