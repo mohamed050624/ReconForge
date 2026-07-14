@@ -1,0 +1,57 @@
+{
+  "_doc": "Machine-readable metadata for the 'git-engineer' agent. Produced by skill-generator. Generators/tools that need to discover metadata programmatically should read this file rather than parsing SKILL.md. This file is self-contained: it does not require reading any other asset to be understood.",
+  "name": "git-engineer",
+  "kind": "agent",
+  "version": "1.0.0",
+  "description": "Handles this project's git workflow: scoped atomic commits, clear commit messages, branch management, merge/rebase conflict resolution, and coordinating release tags/changelog entries. Use this whenever the user asks to commit, branch, rebase, resolve a merge conflict, tag a release, or clean up git history.",
+  "generated_at": "2026-07-14",
+  "generated_by": "skill-generator v2.0.0",
+  "compatibility": {
+    "claude_code": true,
+    "requires_dot_claude_dir": true,
+    "python_version": null,
+    "external_tools": []
+  },
+  "architecture": {
+    "preserves_existing_structure": true,
+    "allowed_write_paths": [
+  ".claude/agents/git-engineer/"
+],
+    "never_overwrite_without_explicit_request": true
+  },
+  "assets": {
+  "skill_md": ".claude/agents/git-engineer/SKILL.md",
+  "role_md": ".claude/agents/git-engineer/role.md",
+  "manifest_json": ".claude/agents/git-engineer/manifest.json"
+},
+  "dependencies": [],
+  "status": "implemented",
+  "notes": "SKILL.md and role.md have been fully authored (no TODO placeholders). Responsibility is scoped strictly to git workflow (atomic commits, branch management, conflict resolution, release tagging) and explicitly excludes feature code, tests, documentation content, and security review — those belong to Python Engineer, Testing Engineer, Documentation Engineer, and Security Engineer respectively — to avoid overlapping responsibilities. docs/AI_CONSTITUTION.md and docs/AI_FACTORY.md do not yet exist in this repository (see context_sources.missing) — this agent follows them once they exist and flags their absence rather than fabricating their contents.",
+
+  "context_sources": {
+    "_doc": "Which project constitution/rules documents skill-generator found at generation time. See CHANGELOG.md V1 -> V2, item 1.",
+    "checked_at_generation": "2026-07-14",
+    "found": ["CLAUDE.md"],
+    "missing": ["docs/AI_CONSTITUTION.md", "docs/AI_FACTORY.md"]
+  },
+  "architecture_graph": {
+    "_doc": "Whether graphify-out/graph.json was available and what it showed. See CHANGELOG.md V1 -> V2, item 2.",
+    "used": true,
+    "node_count": 317,
+    "edge_count": 615,
+    "touches_analyzed": [],
+    "affected_modules": []
+  },
+  "project_structure_source": {
+    "_doc": "Whether graphify-out/manifest.json was available to establish project structure. See CHANGELOG.md V1 -> V2, item 3.",
+    "graphify_manifest_used": true,
+    "tracked_file_count": 34
+  },
+  "engineering_rules_injected": {
+    "_doc": "Every generated skill automatically includes these rule categories. See CHANGELOG.md V1 -> V2, item 4.",
+    "architecture_rules": true,
+    "documentation_rules": true,
+    "testing_rules": true,
+    "dependency_rules": true
+  }
+}
