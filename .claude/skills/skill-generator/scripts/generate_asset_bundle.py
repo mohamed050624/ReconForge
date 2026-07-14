@@ -362,6 +362,87 @@ def generate(
         (templates_dir / "engineering_rules_block.md.template").read_text(encoding="utf-8")
     )
 
+    # --- Kind-aware cross-references. Skill and agent bundles have
+    # different destination layouts (agents don't get workflows/, prompts/,
+    # examples/, or a validation checklist), so SKILL.md's internal
+    # references must differ by kind rather than being hardcoded to the
+    # skill layout. ---
+    if kind == "agent":
+        self_skill_path = f".claude/agents/{name}/SKILL.md"
+        role_md_path = f".claude/agents/{name}/role.md"
+        manifest_path = f".claude/agents/{name}/manifest.json"
+        workflow_intro_block = (
+            "This agent has no separate `workflow.md` file — the numbered "
+            "steps below are the authoritative procedure."
+        )
+        validation_block = (
+            "This agent bundle has no separate validation checklist file. "
+            "Before treating any task from this agent as complete, verify: "
+            "the implementation plan was shared before coding, no public API "
+            "broke without explicit sign-off, no unrelated module changed, "
+            "documentation was updated to match any architectural change, "
+            "and tests exist for new/changed behavior."
+        )
+        related_assets_block = (
+            f"- Role contract: `{role_md_path}`\n"
+            f"- Manifest: `{manifest_path}`\n\n"
+            "This is an agent bundle (`--kind agent`): it intentionally has "
+            "no `prompts/`, `workflows/`, `examples/`, or validation-checklist "
+            "files. See `role.md` for the full behavior/boundary contract."
+        )
+        role_relationship_block = (
+            f"- `{self_skill_path}` — trigger conditions and workflow summary\n"
+            f"- `{manifest_path}` — version and compatibility metadata"
+        )
+        allowed_write_paths = [f".claude/agents/{name}/"]
+        assets_dict = {
+            "skill_md": self_skill_path,
+            "role_md": role_md_path,
+            "manifest_json": manifest_path,
+        }
+    else:
+        self_skill_path = f".claude/skills/{name}/SKILL.md"
+        role_md_path = f".claude/roles/{name}/role.md"
+        manifest_path = f".claude/manifests/{name}/manifest.json"
+        workflow_intro_block = (
+            f"This skill follows the procedure defined in\n"
+            f"`.claude/workflows/{name}/workflow.md`. Read that file for the\n"
+            "authoritative step-by-step sequence before acting.\n\n"
+            "High-level summary:"
+        )
+        validation_block = (
+            "Before considering a task from this skill complete, check it "
+            f"against `.claude/skills/{name}/VALIDATION_CHECKLIST.md`."
+        )
+        related_assets_block = (
+            f"- Role contract: `{role_md_path}`\n"
+            f"- Manifest: `{manifest_path}`\n"
+            f"- Prompt templates: `.claude/prompts/{name}/`\n"
+            f"- Workflow: `.claude/workflows/{name}/workflow.md`\n"
+            f"- Examples: `.claude/skills/{name}/examples/`\n"
+            f"- Validation checklist: `.claude/skills/{name}/VALIDATION_CHECKLIST.md`"
+        )
+        role_relationship_block = (
+            f"- `{self_skill_path}` — trigger conditions and workflow summary\n"
+            f"- `.claude/workflows/{name}/workflow.md` — the exact procedure this role follows\n"
+            f"- `{manifest_path}` — version and compatibility metadata"
+        )
+        allowed_write_paths = [
+            f".claude/skills/{name}/",
+            f".claude/workflows/{name}/",
+            f".claude/prompts/{name}/",
+            f".claude/roles/{name}/",
+            f".claude/manifests/{name}/",
+        ]
+        assets_dict = {
+            "skill_md": self_skill_path,
+            "role_md": role_md_path,
+            "workflow": f".claude/workflows/{name}/workflow.md",
+            "prompts": f".claude/prompts/{name}/",
+            "examples": f".claude/skills/{name}/examples/",
+            "validation_checklist": f".claude/skills/{name}/VALIDATION_CHECKLIST.md",
+        }
+
     context = {
         "skill_name": name,
         "skill_title": slug_to_title(name),
@@ -369,6 +450,14 @@ def generate(
         "generated_date": datetime.date.today().isoformat(),
         "generator_version": GENERATOR_VERSION,
         "kind": kind,
+        "self_skill_path": self_skill_path,
+        "role_md_path": role_md_path,
+        "role_relationship_block": role_relationship_block,
+        "allowed_write_paths_json": json.dumps(allowed_write_paths, indent=2),
+        "assets_json": json.dumps(assets_dict, indent=2),
+        "workflow_intro_block": workflow_intro_block,
+        "validation_block": validation_block,
+        "related_assets_block": related_assets_block,
         # Markdown blocks for SKILL.md / role.md:
         "engineering_rules_block": engineering_rules_block,
         "context_report_block": build_context_report_block(context_docs),
@@ -431,10 +520,10 @@ def generate(
 
     # Validate manifest.json is well-formed JSON after rendering, if generated
     if "manifest" in sections and not dry_run:
-        manifest_path = target / asset_map["manifest"]["dest"].format(name=name)
-        if manifest_path.exists():
+        manifest_check_path = target / asset_map["manifest"]["dest"].format(name=name)
+        if manifest_check_path.exists():
             try:
-                json.loads(manifest_path.read_text(encoding="utf-8"))
+                json.loads(manifest_check_path.read_text(encoding="utf-8"))
             except json.JSONDecodeError as e:
                 errors.append(f"Generated manifest.json is invalid JSON: {e}")
 

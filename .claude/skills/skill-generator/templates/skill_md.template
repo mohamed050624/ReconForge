@@ -1,13 +1,14 @@
 <!--
   TEMPLATE: skill_md.template
   PRODUCED BY: skill-generator
-  PURPOSE: Renders into `.claude/skills/{{skill_name}}/SKILL.md` — the entry
-  point Claude Code reads when this skill's description matches the current
-  task. This file must remain valid on its own; do not delete the frontmatter
-  or the section headers below.
-  RELATES TO: role.md (persona/boundaries), manifest.json (metadata),
-  workflows/*.md (procedures this skill follows), prompts/*.md (reusable
-  prompt scaffolds), examples/*.md (worked scenarios).
+  PURPOSE: Renders into `{{self_skill_path}}` — the entry
+  point Claude Code reads when this skill's/agent's description matches the
+  current task. This file must remain valid on its own; do not delete the
+  frontmatter or the section headers below.
+  RELATES TO: role.md (persona/boundaries), manifest.json (metadata).
+  For --kind skill bundles, also: workflows/*.md (procedures this skill
+  follows), prompts/*.md (reusable prompt scaffolds), examples/*.md
+  (worked scenarios) — agent bundles (--kind agent) don't generate these.
 -->
 ---
 name: {{skill_name}}
@@ -36,11 +37,7 @@ compatibility: Claude Code project. Generated {{generated_date}} by skill-genera
 
 ## Workflow
 
-This skill follows the procedure defined in
-`.claude/workflows/{{skill_name}}/workflow.md`. Read that file for the
-authoritative step-by-step sequence before acting.
-
-High-level summary:
+{{workflow_intro_block}}
 
 1. <!-- TODO: step 1 -->
 2. <!-- TODO: step 2 -->
@@ -54,7 +51,7 @@ High-level summary:
 ## Architecture constraints
 
 - Never break existing project architecture; see
-  `.claude/roles/{{skill_name}}/role.md` for the full boundary contract.
+  `{{role_md_path}}` for the full boundary contract.
 - Never move or rename existing files unless explicitly requested.
 - Preserve backward compatibility of any public API this skill touches.
 
@@ -87,14 +84,8 @@ has since changed.
 
 ## Validation
 
-Before considering a task from this skill complete, check it against
-`.claude/skills/{{skill_name}}/VALIDATION_CHECKLIST.md`.
+{{validation_block}}
 
 ## Related assets in this bundle
 
-- Role contract: `.claude/roles/{{skill_name}}/role.md`
-- Manifest: `.claude/manifests/{{skill_name}}/manifest.json`
-- Prompt templates: `.claude/prompts/{{skill_name}}/`
-- Workflow: `.claude/workflows/{{skill_name}}/workflow.md`
-- Examples: `.claude/skills/{{skill_name}}/examples/`
-- Validation checklist: `.claude/skills/{{skill_name}}/VALIDATION_CHECKLIST.md`
+{{related_assets_block}}
