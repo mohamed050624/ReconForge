@@ -1,0 +1,63 @@
+{
+  "_doc": "Machine-readable metadata for the '{{skill_name}}' skill. Produced by skill-generator. Generators/tools that need to discover skill metadata programmatically should read this file rather than parsing SKILL.md. This file is self-contained: it does not require reading any other asset to be understood.",
+  "name": "{{skill_name}}",
+  "version": "0.1.0",
+  "description": "{{skill_description}}",
+  "generated_at": "{{generated_date}}",
+  "generated_by": "skill-generator v{{generator_version}}",
+  "compatibility": {
+    "claude_code": true,
+    "requires_dot_claude_dir": true,
+    "python_version": null,
+    "external_tools": []
+  },
+  "architecture": {
+    "preserves_existing_structure": true,
+    "allowed_write_paths": [
+      ".claude/skills/{{skill_name}}/",
+      ".claude/workflows/{{skill_name}}/",
+      ".claude/prompts/{{skill_name}}/",
+      ".claude/roles/{{skill_name}}/",
+      ".claude/manifests/{{skill_name}}/"
+    ],
+    "never_overwrite_without_explicit_request": true
+  },
+  "assets": {
+    "skill_md": ".claude/skills/{{skill_name}}/SKILL.md",
+    "role_md": ".claude/roles/{{skill_name}}/role.md",
+    "workflow": ".claude/workflows/{{skill_name}}/workflow.md",
+    "prompts": ".claude/prompts/{{skill_name}}/",
+    "examples": ".claude/skills/{{skill_name}}/examples/",
+    "validation_checklist": ".claude/skills/{{skill_name}}/VALIDATION_CHECKLIST.md"
+  },
+  "dependencies": [],
+  "status": "scaffolded",
+  "notes": "status is 'scaffolded' until a human fills in the TODO placeholders left in the generated files and updates this field to 'implemented'.",
+
+  "context_sources": {
+    "_doc": "Which project constitution/rules documents skill-generator found at generation time. See CHANGELOG.md V1 -> V2, item 1.",
+    "checked_at_generation": "{{generated_date}}",
+    "found": {{context_found_json}},
+    "missing": {{context_missing_json}}
+  },
+  "architecture_graph": {
+    "_doc": "Whether graphify-out/graph.json was available and what it showed. See CHANGELOG.md V1 -> V2, item 2.",
+    "used": {{graph_used_json}},
+    "node_count": {{graph_node_count_json}},
+    "edge_count": {{graph_edge_count_json}},
+    "touches_analyzed": {{touches_json}},
+    "affected_modules": {{affected_modules_json}}
+  },
+  "project_structure_source": {
+    "_doc": "Whether graphify-out/manifest.json was available to establish project structure. See CHANGELOG.md V1 -> V2, item 3.",
+    "graphify_manifest_used": {{graph_manifest_used_json}},
+    "tracked_file_count": {{graph_manifest_file_count_json}}
+  },
+  "engineering_rules_injected": {
+    "_doc": "Every generated skill automatically includes these rule categories. See CHANGELOG.md V1 -> V2, item 4.",
+    "architecture_rules": true,
+    "documentation_rules": true,
+    "testing_rules": true,
+    "dependency_rules": true
+  }
+}

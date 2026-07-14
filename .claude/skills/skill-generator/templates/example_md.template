@@ -1,0 +1,47 @@
+<!--
+  TEMPLATE: example_md.template
+  PRODUCED BY: skill-generator
+  PURPOSE: Renders into `.claude/skills/{{skill_name}}/examples/example_1.md`
+  — a worked scenario showing this skill's expected input and output.
+  Duplicate this file (example_2.md, example_3.md, ...) for additional
+  scenarios, especially edge cases.
+  RELATES TO: skill.md (what triggers this scenario), prompts/*.md (which
+  prompt template produced this output).
+-->
+# Example: {{skill_title}}
+
+## Scenario
+
+<!-- TODO: one-sentence description of the situation, e.g. "User asks the
+     skill to do X against target Y, with constraint Z." -->
+
+## Input
+
+```
+<!-- TODO: the literal input this skill received -->
+```
+
+## Expected process
+
+<!-- TODO: which workflow steps fire, in what order, and why. Reference
+     `.claude/workflows/{{skill_name}}/workflow.md` step numbers. -->
+
+1.
+2.
+3.
+
+## Expected output
+
+```
+<!-- TODO: the literal output this skill should produce -->
+```
+
+## Why this is correct
+
+<!-- TODO: what makes this the right output — which constraints from
+     role.md it respects, which failure modes it avoids. -->
+
+## Edge case notes
+
+<!-- TODO: optional — what would change if the input were slightly
+     different (empty input, ambiguous scope, missing authorization, etc.) -->

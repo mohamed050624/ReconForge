@@ -1,0 +1,17 @@
+version: 1
+
+project:
+  name: ReconForge
+  ai_system: RFCP
+
+asset_types:
+  - skill
+  - role
+  - manifest
+  - prompt
+  - workflow
+  - policy
+  - schema
+  - template
+
+registry: []

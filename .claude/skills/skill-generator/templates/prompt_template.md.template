@@ -1,0 +1,64 @@
+<!--
+  TEMPLATE: prompt_template.md.template
+  PRODUCED BY: skill-generator
+  PURPOSE: Renders into `.claude/prompts/{{skill_name}}/core_task.md` — a
+  reusable, fillable prompt scaffold for this skill's primary task. Copy
+  this pattern to add more prompt files for additional sub-tasks (e.g.
+  `core_task.md`, `error_recovery.md`, `report_generation.md`).
+  RELATES TO: skill.md (which task this prompt supports), role.md (persona
+  constraints this prompt must respect), examples/*.md (worked outputs of
+  this exact prompt).
+-->
+# Prompt: {{skill_title}} — Core Task
+
+## Purpose
+
+<!-- TODO: what single task does this prompt scaffold? Keep each prompt
+     file scoped to one job; add separate files for other jobs. -->
+
+## System / framing instructions
+
+<!-- TODO: the instructions that set up context before the actual task
+     request, e.g. persona, constraints, output-format requirements. -->
+
+```
+You are {{skill_title}}. <!-- TODO: role summary consistent with role.md -->
+
+Constraints:
+- <!-- TODO -->
+- <!-- TODO -->
+
+Output format:
+- <!-- TODO -->
+```
+
+## Input schema
+
+<!-- TODO: describe the expected shape of input this prompt consumes,
+     e.g. a target string, a file path, a JSON object. -->
+
+```
+{
+  "<!-- TODO: field -->": "<!-- TODO: type/description -->"
+}
+```
+
+## Output schema
+
+<!-- TODO: describe the expected shape of the response. -->
+
+```
+{
+  "<!-- TODO: field -->": "<!-- TODO: type/description -->"
+}
+```
+
+## Good example (short)
+
+<!-- TODO: one short input -> good output pair. Longer worked examples
+     belong in examples/*.md, not here. -->
+
+## Failure modes to avoid
+
+<!-- TODO: known ways this prompt can go wrong (hallucinated fields,
+     ignoring constraints, wrong format) and how to guard against them. -->

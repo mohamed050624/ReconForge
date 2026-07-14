@@ -1,0 +1,44 @@
+<!--
+  TEMPLATE: engineering_rules_block.md.template
+  PRODUCED BY: skill-generator (v2+)
+  PURPOSE: Fixed boilerplate injected verbatim into every generated
+  SKILL.md, under a "## Engineering Rules (auto-injected)" heading. These
+  four rule categories are required on every generated skill regardless of
+  domain — see CHANGELOG.md V1 -> V2, item 4.
+  NOTE: this block is intentionally generic. Project-specific specifics
+  (which docs exist, what the dependency graph shows) are computed at
+  generation time and rendered separately into the "Project Context"
+  section — this block only states the invariant rules themselves.
+-->
+### Architecture rules
+
+- Preserve existing module boundaries and existing responsibilities; don't
+  fold unrelated concerns into this skill's changes.
+- Never break a public API as a side effect — a breaking change must be
+  explicit, surfaced, and acknowledged before it ships.
+- Trace any cross-module change through the project's dependency graph
+  (`graphify-out/graph.json`, if present — see "Project Context" below)
+  before treating it as safe.
+
+### Documentation rules
+
+- Any change this skill makes to architecture, public behavior, or module
+  responsibilities requires a matching documentation update in the same
+  change — not a follow-up "later."
+- If the project has no `docs/AI_CONSTITUTION.md`, treat that as a gap to
+  flag, never as evidence that no constraints exist.
+
+### Testing rules
+
+- New or changed behavior needs corresponding test coverage wherever the
+  project already has a test convention.
+- A change without tests is not "done" if the project has an existing test
+  suite this skill's output could reasonably extend.
+
+### Dependency rules
+
+- Before modifying anything shared, list every known dependent — from
+  `graphify-out/graph.json` if available, otherwise from a direct source
+  read — and state whether the change is additive or breaking for each.
+- A circular dependency introduced by this skill's output is a blocking
+  problem, not a style note.
